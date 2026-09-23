@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: Please cite the original article using the preferred citation below.
+title: Dynamic Texture Enlargement - research companion
+type: dataset
+authors:
+  - family-names: Haindl
+    given-names: Michal
+  - family-names: Richtr
+    given-names: Radek
+preferred-citation:
+  type: conference-paper
+  title: Dynamic Texture Enlargement
+  year: 2013
+  doi: 10.1145/2508244.2508245
+  authors:
+    - family-names: Haindl
+      given-names: Michal
+    - family-names: Richtr
+      given-names: Radek
