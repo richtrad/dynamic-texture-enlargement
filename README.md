@@ -6,6 +6,10 @@ Research companion to **Michal Haindl and Radek Richtr**, *Dynamic Texture Enlar
 
 [Read the paper](https://library.utia.cas.cz/separaty/2013/RO/haindl-0397609.pdf) · [Publication and DOI](https://doi.org/10.1145/2508244.2508245) · [Companion: Dynamic Texture Editing](https://doi.org/10.1145/2788539.2788559)
 
+![Examples from Figure 1 of the original publication](preview.png)
+
+*Figure 1 preview from the institutional PDF. Its original image quality is retained; this is not a high-resolution restoration.*
+
 ## The idea
 
 Dynamic textures are moving patterns such as vegetation, water, and smoke. A recorded sample has a fixed field of view and duration. This work constructs reusable patches that can be tiled in the two spatial dimensions and in time.
