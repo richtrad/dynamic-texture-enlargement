@@ -5,6 +5,11 @@ unchanged. Only the listed mechanical corrections were applied; no
 equation, number, citation key, figure, table, or experimental claim was
 changed. Ambiguous prose remains for author review.
 
+The archival file contains legacy Windows-1250 bytes in some internal
+comments. The working copy decodes those bytes as Windows-1250 and writes
+UTF-8, which makes those comments readable; the byte-preserved source remains
+available alongside it.
+
 | Original | Replacement | Occurrences |
 | --- | --- | ---: |
 | `synthetize` | `synthesize` | 2 |
