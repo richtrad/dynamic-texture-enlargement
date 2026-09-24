@@ -28,8 +28,8 @@ This repository is being assembled from the historical research archive. The res
 | Citation | `CITATION.cff` and `citation.bib` |
 | Original LaTeX | `source/original/13sccg_DT.tex` (byte-preserved anonymized review/preprint source) |
 | Typo-only source copy | `source/edited/13sccg_DT_typos.tex`, with an explicit `CHANGELOG.md`; original is unchanged |
-| Recovered source image | `figures/source/Breh_X0000.png` (720×576 PNG; provenance documented beside it) |
-| Higher-resolution figures | One verified source raster recovered; remaining figure assets are still being matched |
+| Recovered source images | `figures/source/Breh_X0000.png` (720×576) and `figures/source/_fire6orig0153.png` (543×407), with provenance documented beside them |
+| Higher-resolution figures | Two verified source rasters recovered; remaining figure assets are still being matched |
 | Original videos and data | Recovery and figure-to-video mapping in progress |
 | Historical implementation | Not yet recovered; this is not an executable reproduction |
 

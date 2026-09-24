@@ -8,3 +8,9 @@ replacement for the smaller raster embedded in the proceedings PDF, while the
 paper's layout and visual content remain unchanged.
 
 SHA-256: `41C1C7AA833FFF37D0A47A99ADA5984568C61A9FB04AAEA0DE392CD66A28EBFD`
+
+`_fire6orig0153.png` is the other source raster referenced by the LaTeX
+teaser (`\adri/_fire6orig0153`).  It is retained at its original 543×407
+resolution, without upscaling or content changes.
+
+SHA-256: `1D8DC66627DC8892F0B8CF450CD93E5D07DDBE9855AB96904827CC5C3E6AF2C5`
