@@ -4,7 +4,7 @@
 
 Research companion to **Michal Haindl and Radek Richtr**, *Dynamic Texture Enlargement*, Spring Conference on Computer Graphics (SCCG), 2013.
 
-[Read the paper](https://library.utia.cas.cz/separaty/2013/RO/haindl-0397609.pdf) · [Publication and DOI](https://doi.org/10.1145/2508244.2508245) · [Companion: Dynamic Texture Editing](https://doi.org/10.1145/2788539.2788559)
+[Read the paper](https://library.utia.cas.cz/separaty/2013/RO/haindl-0397609.pdf) · [Publication and DOI](https://doi.org/10.1145/2508244.2508245) · [Companion Git repository: Dynamic Texture Editing](https://github.com/richtrad/dynamic-texture-editing) · [Editing publication and DOI](https://doi.org/10.1145/2788539.2788559)
 
 ![Examples from Figure 1 of the original publication](preview.png)
 
