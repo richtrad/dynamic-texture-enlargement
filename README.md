@@ -26,12 +26,18 @@ This repository is being assembled from the historical research archive. The res
 | --- | --- |
 | Published article | Public institutional PDF linked above |
 | Citation | `CITATION.cff` and `citation.bib` |
-| Original LaTeX | Recovery in progress; not yet included |
-| Higher-resolution figures | Matching against historical originals in progress |
+| Original LaTeX | `source/original/13sccg_DT.tex` (byte-preserved anonymized review/preprint source) |
+| Typo-only source copy | `source/edited/13sccg_DT_typos.tex`, with an explicit `CHANGELOG.md`; original is unchanged |
+| Recovered source image | `figures/source/Breh_X0000.png` (720×576 PNG; provenance documented beside it) |
+| Higher-resolution figures | One verified source raster recovered; remaining figure assets are still being matched |
 | Original videos and data | Recovery and figure-to-video mapping in progress |
 | Historical implementation | Not yet recovered; this is not an executable reproduction |
 
-The institutional PDF is the reference for the published content. A later restored author edition must have a separate filename and a documented change log.
+The institutional PDF is the reference for the published content. The recovered
+LaTeX is a review/preprint working source with placeholder author metadata, so
+it is deliberately kept under `source/original/` and is not presented as the
+final proceedings source. A later restored author edition must have a separate
+filename and a documented change log.
 
 ## Citation
 

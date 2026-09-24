@@ -1,0 +1,1179 @@
+% 269th Spring conference on Computer Graphics
+% May 1-3, 2013 Smolenice castle
+
+
+\def\adsty{./sty/} % MH
+\def\adri{./img/}  % MH
+\def\adrb{../BIB/}
+		\def\miniframe#1#2{\hspace*{3mm}\fbox{\begin{minipage}{10.0cm}\large\textbf{#1}\\ #2\end{minipage}}}
+		\def\minishadow#1#2#3{{\minibegin\titlebox{#1}#2\par #3\miniend}}
+		\def\minisimple#1#2{{\minibegin #1\par #2\miniend}}
+		\def\mininoshadow#1#2#3{{\minibegin\titleboxnoshadow{#1}#2\par #3\miniend}}
+%---------------------------------------------------
+
+%\documentclass{\adsty acmsiggraph}               % final
+\documentclass[review]{\adsty acmsiggraph}      % review
+%\documentclass[widereview]{acmsiggraph}  % wide-spaced review
+%\documentclass[preprint]{acmsiggraph}    % preprint
+
+%% Uncomment one of the four lines above depending on where your paper is
+%% in the conference process. ``review'' and ``widereview'' are for review
+%% submission, ``preprint'' is for pre-publication, and ``final'' is for
+%% the version to be printed.
+
+%% These two line bring in essential packages: ``mathptmx'' for Type 1 
+%% typefaces, and ``graphicx'' for inclusion of EPS figures.
+
+\usepackage{mathptmx}
+\usepackage{graphicx}
+
+%% use this for zero \parindent and non-zero \parskip, intelligently.
+
+\usepackage{parskip}
+\usepackage{caption} %MH
+\usepackage{subcaption}  %MH
+%\usepackage{subfigure} % MH
+
+
+
+%% If you are submitting a paper to the annual conference, please replace 
+%% the value ``0'' below with your OnlineID. If you are not submitting this
+%% paper to the annual conference, you may safely leave it at ``0'' -- it 
+%% will not be included in the output.
+
+\onlineid{0}
+
+%% need to document this!
+
+\acmformat{print}
+
+%% Paper title.
+
+\title{Dynamic Texture Enlargement}
+
+%% Author and Affiliation (single author).
+
+%%\author{Roy G. Biv\thanks{e-mail: roy.g.biv@aol.com}\\Allied Widgets Research}
+
+%% Author and Affiliation (multiple authors).
+
+%\author{Michal Haindl\thanks{e-mail:haindl@utia.cas.cz} \and Radek Richtr\thanks{e-mail:richtr@utia.cas.cz}}
+%\pdfauthor{Michal Haindl, Radek Richtr}
+%\affiliation{Institute of Information Theory and Automation of the ASCR, Prague, Czech Republic}
+
+\author{ {\Large ID 0}     \thanks{e-mail: ...@...} \\ . 
+\and . \thanks{e-mail: ...@...} \\ .}
+
+
+%\author{Roy G. Biv\thanks{e-mail: roy.g.biv@aol.com}\\ Starbucks Research %
+%\and Ed Grimley\thanks{e-mail:ed.grimley@aol.com}\\ Grimley Widgets, Inc. %
+%\and Martha Stewart\thanks{e-mail:martha.stewart@marthastewart.com}\\ Martha Stewart Enterprises \\ 
+%Microsoft Research}
+
+%% Keywords that describe your work.
+
+\keywords{dynamic texture, texture enlargement, patch-based texture synthesis}
+
+%%%%%% START OF THE PAPER %%%%%%
+
+\begin{document}
+
+\teaser{
+  \includegraphics[width=1.5in]{\adri _fire6orig0153}
+  \caption{Lookit! Lookit!}
+}
+
+
+
+%% The ``\maketitle'' command must be the first command after the
+%% ``\begin{document}'' command. It prepares and prints the title block.
+
+\maketitle
+
+%% Abstract section.
+
+\begin{abstract}
+
+A simple and fast approach for synthesizing dynamic textures that realistically matches given color 
+		texture appearance and the optic flow is presented. The method generalizes the previous work in 
+		spatial area which works well for static textures to the dynamic textures domain. Our method  
+		is based on overlapping tiling and subsequent minimum boundary cut. Optimal toroidal dynamic texture 
+		patches are created in each spatial and dynamic dimension, where they are derived from the optical
+		 flow of the modeled texture. The toroidal patches are created in the analytical step which is 
+		 separated from the synthesis part. The method is extremely fast (both in the spatial as well as 
+		 in the time dimension), works well for many types of natural dynamic textures, and it is very easy 
+		 to implement.
+
+\end{abstract}
+
+%% ACM Computing Review (CR) categories. 
+%% See <http://www.acm.org/class/1998/> for details.
+%% The ``\CRcat'' command takes four arguments.
+
+\begin{CRcatlist}
+  \CRcat{I.3.3}{Computer Graphics}{Picture/Image Generation}{Display Algorithms}
+  \CRcat{I.3.7}{Computer Graphics}{Three-Dimensional Graphics
+  and Realism}{Color, shading, shadowing, and texture};
+\end{CRcatlist}
+
+%% The ``\keywordlist'' command prints out the keywords.
+\keywordlist
+
+\section{Introduction}
+
+%% The ``\copyrightspace'' command must be the first command after the 
+%% start of the first section of the body of your paper. It ensures the
+%% copyright space is left at the bottom of the first column on the first
+%% page of your paper.
+
+\copyrightspace
+
+	Texture enlargement is widely recognized to be important for computer graphic applications in many ways because whatever size of measured data is, it is always insufficient  (i.e., for rendering of a complex and large scenes). The amount of measured data can be extremely high, thus some  dynamic texture 
+compression method   is inevitable. Dynamic texture editing  is another  useful  application which allows to synthesize alternative types of DT, recreating sequences for studying of relationship between model parametres and visual appearance of the scene, etc. 
+
+	The texture synthesis goal is to create a texture  which is perceptually similar to the example texture -  synthesized texture must reproduce a given digitized texture image so that original and reproduced one is ideally visually indiscernible.  However modeling of a natural texture is a very challenging and difficult task, due to unlimited variety of possible surfaces, illumination and viewing conditions simultaneously with the strong discriminative functionality of the human visual system. Also observations-nuisance-factors like artifact of unwanted regularity must be avoided.
+
+	In this article, we present a new approach to generate infinitely large output (in all dimension) from a significantly smaller amount of measured input data. This is done by sophisticated composition of several  triple toroidal patches, which can be seamlessly repeated in every direction. 
+By this way we can create a significantly larger pattern with similar stochastic properties. Our algorithm can find toroidal patches in the input texture such that after giving patches abreast the borders between patches are visually indiscernible (seamless). This intelligent sampling allows to retain a small enough representative data samples to represent the whole texture. It also allows the creation of the infinitely large seamless output by repeating sequence of these toroidal samples.
+
+		%Generating a newer, bigger form of a output from a smaller example is widely recognized to be important for computer graphic applications in many ways - storage large data sets, artistic purposes, creating large samples (f.e rendering of complex and large graphic scenes), and can helps in better understanding and recognition of modeled data. In this article, we present a new approach to generate infinite large output (in all dimension) from a small amount of input data. This is done by composition of sets of toroidal patches by which we can create a significantly larger pattern with similar stochastic properties. More specifically our algorithm find some patches of the same shape which has toroidal property and can be put abreast to create the seamless output. By this the output can be created only by copiyng input texture to output by previously known and generated sequence of patches which can by infinitely long.
+		
+	%	In synthesizing a texture it is important to generate a texture which is perceptually similar to the example texture -  synthesized texture must reproduce a given digitized texture image so that original and reproduced one must be indiscernible.  However modeling of a natural texture is a very challenging and difficult task, due to unlimited variety of possible surfaces, illumination and viewing conditions simultaneously with the strong discriminative functionality of the human visual system. Also observations-nuisance-factors like artifact of unwanted regularity must be avoided.
+			% \cite{HaiHat05}		
+
+		%There are many approaches to synthesis two dimensional data instead of mentioned approaches \cite{HaiHat05} there are many methods, based on copying original data like graph-cut algoritm\cite{Kwatra03graphcuttextures} or similar method using patches and many othets \cite {Dong09robusttile-based}. \emph{Vide nebo vynechat}.
+		% 2D:
+		%ASHIKHMIN, M. 2001. Synthesizing natural textures.
+
+		%Schödl
+		%videotextures,skoky
+		%There are some main approaches to synthesis  dynamic textures. The simplest way is to create texture (or video texture as is addressed \cite{Schodl00videotextures} and presented by Arno Schodl) by using simple similarity of spatial data (frames) with varying time dimension and using of optical flow to find parts with similar motion \cite{Schodl00videotextures}. This  loop based algorithm is too simple and only can enlarge the temporal dimension. Also only some sort of dynamic textures can be synthesized this way. The reason is that it can be difficult to find some enough similar loop points (f.e. if textures has low temporal regularity or highly stochastic textures) and blurring between most similar frames can lead to optical distraction.
+
+		There are two main approaches to the synthesis dynamic textures. The first  approach is based on  a mathematical model. By its simulation the desired goals can be achieved (i.e, a texture is synthesized, recognized, etc.). The second option is to synthesize output DT using intelligent sampling from the original measured DT data.
+
+ 		The one of the simplest way to create (temporally) enlarged texture (or video texture as is addressed\cite{Schodl00videotextures} and presented by Arno Schodl) is by using simple similarity of spatial data (frames) with varying time dimension and using of optical flow to find parts with similar motion\cite{Schodl00videotextures}. This loop based algorithm is too simple and can only enlarge the temporal dimension. Only a limited number of dynamic textures can be synthesized as follows. The reason is that it can be difficult to find some enough similar loop points (i.e., if textures has low temporal regularity or highly stochastic textures). Blurring between most similar frames can lead to optical distraction too.
+
+		
+		Many approaches \cite{Bonet98multiresolutionsampling,Lin07alattice-based,Lin05alattice-based,Efros01imagequilting,Wei00fasttexture} formalize texture like Markov Random Field (MRF) - the output texture is represented like a regular grid of nodes, where each node represents one pixel in texture and marginal probability of a pair of nodes depend on similarity of corresponding pixels data (typically red, green and blue values, but depends to a color model and similarity metrics). By this, solution can be rewritten like finding maximal likelihood of the nodes in grid. Usually some approximation are searched, because this formulation called problem of probabilistic inference is proven to be NP-hard.
+	
+%---=====-SEM=====------%
+
+
+%Doretto05modelingdynamic
+		The modeling of dynamic texture like a parametric (linear) auto-regressive model was studied Szummer \cite {Szummer:1995,Szummer95,Szummer96a}  who modeled DT like spatiotemporal causal model which intuitively but computationally demanding approach. Later Doretto \cite{doretto02thesis,doretto05dissertation,Dyn_tex_jourmal_dorettoCWS03ijcv} and Soatto \cite{Dyn_tex_soatto01} presented auto-regressive moving average process based on SVD. This approach contains time consuming iterative gradient method for parameters estimation, but allow to editing synthesized texture by changing of model parameters. Fast synthesis of dynamic colour textures was presented by Filip \cite{Filip06FastSynthesis} which overwhelmed time consuming previous methods. Chan \cite{ChanV05:0}, Constantini \cite{Costantini_dynamictexture}  \cite{Costantini08higherorder} who use tensor decomposition and SVD techniques and others \cite{Vidal05opticalflow}\cite{LiuLA05} presented similar approaches. Since parametric model are very general and usable for recognition \cite{dyn_tex_rec_saisanDWS01cvpr} they can not model many type of dynamic and video textures.
+
+
+		%pohyb . kniha Human Vision and Electronic Imaging: Models, Methods and Applications. nedostupná
+		%  Spatio-temporal interpolation
+		%Visual hyperacuity: Spatiotemporal interpolation in human vision.
+%		\subsubsection{Dynamic texture}
+		
+	The other approach to synthesizing textures are non-parametric and use some samples to respresent the texture. Many approaches from this class are focused to synthesizes only spatial textures, but the addressed problem is very similar and in some cases can be generalized to higher dimension, but in major part the direct generalize is impossible. The samples of a texture can be whole frame like presented Schodl \cite{Schodl00videotextures} or noticeably smaller like published DeBonet\cite{Bonet98multiresolutionsampling} who used multi-scale-filter to analysis and synthesis of texture. Later works by Efros \cite{Efros99texturesynthesis}, Wei \cite{Wei00fasttexture} and others improves this class of approaches. The part of this class which represent texture not pixel-per-pixel, but by larger patch is intensively researches by Efros \cite{Efros01imagequilting}, Kwatra \cite{Kwatra03graphcuttextures} \cite{Kwatra05textureoptimization} and others 
+	\cite{Dong09robusttile-based}\cite{WangZ02:6}. Wang \cite{Wang04analysisand} represent texture like linear superposition of deformable patches which position is derived by MRF. This approaches are focused to synthesize texture by copying whole patches from input texture, since the offset of patches and boundaries to create seamless texture (of deform it) must be found.
+
+	Instead of Bar-Joseph \cite{Bar-joseph01texturemixing} which can create only time limited sequences or Schodl\cite{Schodl00videotextures} which need to use blur techniques, our approach, does not need to blur or morphing techniques. For handling rough dynamics of texture we used optical flow \cite{Beauchemin95thecomputation,Horn81determiningoptical,Nitsuwat_opticalflow,Vidal05opticalflow} to determine cutting shapes similar like Kwatra \cite{Kwatra05textureoptimization} for computing energy of texture, but we used it in different way.
+
+		Our method can be used to both 3D or 4D textures. The principles of creating spatial and temporal cuts are generally similar, but since temporal dimension has different properties and relation to visual perceptions we develop different method for spatial and temporal cuts driven by optical flow. Purpose of this can be easy seen from the spatial and temporal property of dynamic textures - human perceive differently detects errors in the space and time \cite{Edelman92visualperception} because both spatial dimensions have similar property, hence the temporal not\cite{Fahle81spatiotemporalinterpolation}. In other words the spatial dimension may be interchanged and texture still keeps it structure. The time dimension has (unless some special cases like 4D procedural texture of materials) different property and can not be swapped with another spatial coordinate.
+		
+		
+% fahle - clanku a knih je vc ale nejsou k dostani/stahnuti, puze "v teto knize se pise o..."...
+%Instead of \cite{Bar-joseph01texturemixing} which can create only time limited sequences of \cite{Schodl00videotextures} whicg need to use blurr techniques, our aproach, similat to \cite{Kwatra03graphcuttextures}
+		
+		
+		
+		
+%		Video Textures - schodel jen časový řez \cite{doretto05dissertation}
+%		Fast Texture Synthesis using Tree-structured Vector Quantization - meni strukturu, pyramida
+%		kwatra - není online, výpočetnní náročnost, ukáky/vzorky nízkého rozlišení
+%			kwatra 2 - má porovnání textur, ale jen ve 2D
+%		bar-joseph Texture mixing and texture movie synthesis using statistical learning. - ????
+%		Dynamic Texture Recognition - saisan doretto - vzdálenosti časových frame / textur
+%		doretto články - jde o model, nikoli oižitípřesnch vstupních dat, generuje se za běhu
+		
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		
+		\subsubsection{Dynamic texture}
+		
+		%obecne - video textura a dynamická textura. základní rozdíly. obrázky by asi byly už moc. 
+		%While video textures \cite{Schodl00videotextures} represent general infinitely varying stream of any pictures with no exact limitations and represent general medium, dynamic textures\cite{doretto02thesis} \cite{Dyn_tex_jourmal_dorettoCWS03ijcv} are subset of video textures and are restricted by many limits. In general it can be said that textures must have spatially invariant statistics\cite{Zhu98filters}  and clearly discernible temporal homogenity between frames (exact definition of dynamic texture like generative video model defined by a random processed with some observed variable and hidden variables can be found in \cite{doretto05dissertation}). Like in only spatial dimensions and classical textures, many of them can be modeled only as a mix of more dynamic texture\cite{ChanV05:0}\cite{Chan_modeling}. These types of textures can be created by layered dynamic textures \cite{Chan06layereddynamic} but this model of textures are not suitable for out approach. Our method can work with both media, when general video textures are usually more sensitive to spatial errors and dynamic textures to temporal errors and over-regularity of output textures. Video textures usually needs larger patches since it often contains large structures while spatially invariant dynamic textures allows using of multiple smaller patches.
+		
+In general it can be said that textures can be characterized by spatially / temporally invariant statistics \cite{Zhu98filters} (i.e.,  spatial  and clearly discernible  temporal homogeneity between frames). So the dynamic texture can be defined as as  realization of 4D stochastic random field. Like 2D and 3D textures, many of them can be modeled only as a mix of several dynamic textures\cite{Chan_modeling,ChanV05:0}. These types of textures can be created by layered dynamic textures \cite{Chan06layereddynamic} but this model are not suitable for our approach.  %Our method can work with both media, when general video textures are usually more sensitive to spatial errors and dynamic textures to temporal errors and over-regularity of output textures. Video textures usually needs larger patches since it often contains large structures while spatially invariant dynamic textures allows using of multiple smaller patches.
+
+%dolu jeste \cite{Chan06layereddynamic} layered dynamic texture !!!!
+%k miyu taky \cite{Chan_modeling}   in general it can be said
+
+
+		%%%%
+		%A dynamic texture [11] is a generative video model de-
+		%?ned by a random process with an observed variable yt,
+		%which encodes the video frame at a speci?c time, and a hidden state variable xt, which encodes the evolution of the
+		%video over time. The state and observed variables are related through the following linear dynamical system (LDS)
+		%equations
+		%hm, nenapadlo ě to zkusit otačet, rotovat, ořezávat...
+														%which can have lesser temporal continuity
+		
+		Three major property\cite{doretto02thesis} are present in DT. They both exact and intuitively define whole texture - the static texture itself, global dynamics and local dynamics. The static texture itself represents structure of scene and object with in, the global motion represent moving of all scenes together (i.e. rotating or sliding camera). The local motion represent dynamic in the texture - small motion, oscillation or overlapping and disappearing of small objects.
+		
+
+
+		\section {Toroidal tile}
+		
+%		<treba podstatne zkratit celou sekci> 
+%In only spatial textures, for synthesis and compression the double toroidal tile (seen in Figure 1) can be effectively used \cite{HaiHat05BTF}.  His direct extension is triple toroidal tile, when both spatial and temporal cuts are a 3D plane. Tha main idea of using of a tile (Figure 1) is to find some relevant and sufficiently representative patches from input, which can be \emph{directly} copied to output, where offset is driven by patch shape placed on 3D lattice of patches.  
+
+	The toroidal tile (see Fig.~\ref{fig:tiles_example}) is patch from original data with some specific property. The intuitive property is its toroidal shape according to dimensions. The texture tile is assumed to be indexed on the regular three-dimensional toroidal lattice with size according to periodicity of the texture. The searching algorithm for tile allows its seamless repetition in both spatial and time dimension. In other words, the borders ot files putted abreast are not visible. The main idea of using of tiles (Fig.~\ref{fig:examples_XYT}) is to find some relevant and sufficiently representative patches from input, which can be \emph{directly} copied to output, where offset is driven by the tile shape placed on the three dimensional lattice ofthe  tile label. 
+	
+	Borders of tiles (patches) can be computed by some of existing algorithm 
+	\cite{Boykov01fastapproximate,ExactMinBinarying,Kwatra03graphcuttextures}, ut this approaches works like all dimensions of the texture are equal. We used a method of finding the double toroidal tile~\cite{HaiHat05} with optical flow controlled propagating throughout the time, fitting to local dynamicse and then expand them to triple toroidal tiles.
+	Let us define overlap error for pixel $r$ as follows:
+
+	\begin{equation} \label{eq:h_overlap}
+		 \psi_{r}^h = (Y_{r} - Y_{r+[N-h,0]})^2       \forall r \in I_h 
+	\end{equation} 
+
+	\begin{equation} \label{eq:v_overlap}
+		 \psi_{r}^v = (Y_{r} - Y_{r+[0,M-v]})^2       \forall r \in I_v 
+	\end{equation} 
+
+	where $I_{v}$ is equal to area $(1,...,h) \times (1,...,M)$  and $I_{h}$ is equal to $(1,...,N) \times (1,...,v)$.
+	The optimal horizontal and vertical overlaps are found from the following equation:
+
+	\begin{equation} \label{eq:optimal_overlap}
+		 \zeta_{r}^* = min_{\zeta} \{ \frac{1}{\zeta}\sum_{\forall r \in I_{\zeta}}{\psi_r^{\zeta}}\} 
+	\end{equation}
+						
+
+
+
+%	\begin{equation} \label{eq:optimal_cuts2D1}						
+%		 \Psi_{r}^{h*} = \psi_{r}^{h*}  + min\{\psi_{r-[c,0,0]}^{h**}... \psi_{r-[0,0,0]}^{h**} ... \psi_{r+[c,0,0]}^{h**} \} 
+%	\end{equation} 
+
+
+
+		
+%				\miniframe{}
+%				{
+%		          	              	{}
+%					{
+%					\vspace*{-4mm}
+%					Optimal overlap:\\
+%					 $$\zeta_{r}^* = min_{\zeta} \{ \frac{1}{\zeta}\sum_{\forall r \in I_{\zeta}}{\psi_r^{\zeta}}\} $$
+%		 			%\LARGE $$Y_{r}  =  \sum_{s \in I_r} {A_s} Y_{r-s} + \epsilon_{r} $$}
+%					 $$\psi_{r}^h = (Y_{r} - Y_{r+[N-h,0]})^2       \forall r \in I_h $$
+%					  $$\psi_{r}^v = (Y_{r} - Y_{r+[0,M-v]})^2       \forall r \in I_v $$
+%					}
+%					\begin{tabular}{ l p{9.8cm} }
+%						$Y_{r}$ & denotes a multispectral pixel  \\
+%						$r$ &multiindex with components $ [r_1, r_2, r_3]$ \\&row, columnand frame respectively\\
+%						 $c$ &is two dimensional parameter directly derived by\\ &optic flow in corresponding frame $r_3$\\
+%						$I_{v}$ &= $(1,...,h) x (1,...,M)$\\ 
+%						$I_{h}$ &= $(1,...,N) x (1,...,v)$\\
+%					\end{tabular}
+%					\vspace*{8mm}
+%					\\Optimal cuts:
+%					\vspace*{-4mm}
+%			 $$\Psi_{r}^{h*} = \psi_{r}^{h*}  + min\{\psi_{r-[c,0,0]}^{h**}... \psi_{r-[0,0,0]}^{h**} ... \psi_{r+[c,0,0]}^{h**} \} $$
+%			 $$\Psi_{r}^{v*} = \psi_{r}^{v*}  + min\{\psi_{r-[0,c,0]}^{v**}... \psi_{r-[0,0,0]}^{v**} ... \psi_{r+[0,c,0]}^{v**} \} $$
+%			 $$\psi_{r}^{h**} =\psi_{r}^{v**} +  min\{\psi_{r-[c,0,-1]}^{h**}... \psi_{r-[0,0,-1]}^{h**} ... \psi_{r+[c,0,-1]}^{h**} \} $$
+%			$$ \psi_{r}^{v**} = \psi_{r}^{v**} +  min\{\psi_{r-[0,c,-1]}^{v**}... \psi_{r-[0,0,-1]}^{v**} ... \psi_{r+[0,c,-1]}^{v**} \} $$
+%				}
+		
+
+		
+		%%%%%%%%%%%%%%%%%%%%%%%%prevzato%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		% Overlap error is defined\cite{HaiHat} for pixel \emph{r} as follows:												
+		%\begin{equation}																				
+		%$$\psi_{r}^{horizontal} =  (Y_r - Y_{r+[N-horizontal,0]})^{2} \forall r \in I_{horizontal}$$									
+		%$$\psi_{r}^{vertical} =  (Y_r - Y_{r+[0,N-vertical]})^{2} \forall r \in I_{vertical}$$										
+		%																						
+		%\end{equation}																				
+		%																						
+		%Where $Y_r$ detotes a multispectral pixel indexed an the M \cross N lattice. The multiindex \emph{r} has two						
+		%components $r = [r1, r2]$, the first component is row and the second one column index, respectively. The index sets $I_h$, $I_v$ are defined	%
+		%																						
+		%$$ I_h = (1,...,h) \cross (1,...,M)$$																	
+		%$$I_v = (1,...,N) \cross (1,...,v)$$																	
+		%																						
+		%\emph{h} and \emph{v} lie in preselected intervals $h \in (h_{min}; h_{max})$										
+		%and $v \in (v_{min}; v_{max})$. The optimal horizontal and vertical												
+		%overlaps are found from the following two relations														
+		%																						
+		% $$\zeta_{r}^* = min_{\zeta} \{ \frac{1}{\zeta}\sum_{\forall r \in I_{\zeta}}{\psi_r^{\zeta}}\} $$							
+		% 																						
+		%...																						
+		%																						%%%%%%%%%%%%%%%%%%%%%az sem%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		\hspace*{2mm}
+		
+		The optimal \emph{size} of tile must be first found.  This can be done simply by minimizing overlap error $\zeta_{r}^*$ (see ~\ref{eq:optimal_overlap} or \cite{HaiHat05}) by fourier transform \cite{HaiHat05GenRoll} to find the texture periodicity (with the weight in every frame, or in one representative frame).
+	
+		An optimal \emph{location} for the tile is computed by backpropagation  dynamic-programming-like rules (Eq. \ref{eq:optimal_cuts1},~\ref{eq:optimal_cuts2},~\ref{eq:optimal_cuts3},~\ref{eq:optimal_cuts4}) which minimize both spatial and temporal cut cost.  The parameter $c$ is derived by the average of the optical flow from the actual frame to the next frame. The significantly large optical flow generates greater values of the parameter, which enable greater flexibility and a possible significantly greater change of tile border. This allows to adapt to the scenes where great significant move are present. 
+				
+
+	\begin{equation} \label{eq:optimal_cuts3}
+		 \psi_{r}^{h**} =\psi_{r}^{h**} +  min\{\psi_{r-[c,0,-1]}^{h**}... \psi_{r-[0,0,-1]}^{h**} ... \psi_{r+[c,0,-1]}^{h**} \} 
+	\end{equation} 
+	\begin{equation} \label{eq:optimal_cuts4}
+		 \psi_{r}^{v**} = \psi_{r}^{v**} +  min\{\psi_{r-[0,c,-1]}^{v**}... \psi_{r-[0,0,-1]}^{v**} ... \psi_{r+[0,c,-1]}^{v**} \} 
+	\end{equation} 
+	
+	
+	\begin{equation} \label{eq:optimal_cuts1}						
+		 \Psi_{r}^{h*} = \psi_{r}^{h*}  + min\{\psi_{r-[c,0,0]}^{h**}... \psi_{r-[0,0,0]}^{h**} ... \psi_{r+[c,0,0]}^{h**} \} 
+	\end{equation} 
+	\begin{equation} \label{eq:optimal_cuts2}
+		 \Psi_{r}^{v*} = \psi_{r}^{v*}  + min\{\psi_{r-[0,c,0]}^{v**}... \psi_{r-[0,0,0]}^{v**} ... \psi_{r+[0,c,0]}^{v**} \} 
+	\end{equation} 
+
+					
+				
+%The finding of an optimal location for the tile can be done by building backpropagation structure by dynamic-programming-like rules (Eq. \ref{eq:optimal_cuts1},~\ref{eq:optimal_cuts2},~\ref{eq:optimal_cuts3},~\ref{eq:optimal_cuts4}).
+
+%		While building patches, we first need to find optimal size of the tile, which can be done simply by computing overlap error\cite{HaiHat05} or by fourier transform \cite{HaiHat05GenRoll} to find the texture periodicity and the two largest Fourier coef?cients which can by done in the same weight in every frame, or in one representative (or arbitrary if we suppose temporal homogeneous texture in sense of more dynamic textures in it) frame. The finding of a optimal location for the tile can be done by building backpropagation structure by dynamic-programming-like rules (see table above).
+						
+%		 \begin{center}
+%		$\psi_{r+[0,1,1]}^{v*}= min_{}\{\psi_{r+[i,0,0]}^{v*}\}$  , $\psi_{r+[1,0,1]}^{h*}= min_{}\{\psi_{r+[0,i,0]}^{h*}\}$	\\
+%		\vspace*{2mm}
+ %		$ i\in(-c,0,c)$\\
+ %		\vspace*{2mm}
+ %		 \end{center}
+		
+		%From equation for optimal cuts can be seen both spatial and temporal minimizing of error and cutting cost based directly on linear programming. The parameter $c$ is derived by average of optic flow from frame to frame. The significantly large optic flow generates greater values of the parameter, which enable greater flexibility and a possible change of tile border. In other words, this enable algorithm to adapt to scenes where great significant move are present. 
+		%
+	%From equation for optimal cuts (Eq. \ref{eq:optimal_cuts1},~\ref{eq:optimal_cuts2},~\ref{eq:optimal_cuts3},~\ref{eq:optimal_cuts4}) it can be seen both spatial and temporal minimizing of the error and the cutting cost based directly on the linear programming. The parameter $c$ is derived by the average of the optical flow from the actual frame to the next frame. The significantly large optical flow generates greater values of the parameter, which enable greater flexibility and a possible significantly greater change of tile border. This allows to adapt to the scenes where great significant move are present. 
+
+	
+
+	
+%	Because we want to propagate toroidal cuts through the time dimension of a texture the information is propagated from later states of the texture to previous states which enable work with the texture as a whole with regard to the future states and can override the problem of greedy approach which can stuck in the not sufficient local optimum. 
+	
+	The structure allows the non-greedy-computation of the double (spatial) toroidal patch in the whole texture. It is also useful in cases that there are more types of dynamic textures which are moving in spatial dimensions (i.e., moving video of shore). In this case the backpropagation is used do find parts inconvenient of the texture (i.e., parts of the texture where patches will be not enough long). It can override problems with errors or texture artifact too.
+				
+		
+		 %\begin{block}{Structure}
+		%\begin{otherlanguage}{czech}
+		%\begin{equation}
+		%$$\psi_{x,y,t} = \psi_{x,y,t} + min(\psi_{x+i,y,t-1}^n,...)$$
+		%$$\psi_{x,y,t}^n = \psi_{x,y,z} + \frac{1}{c} \psi_{x,y+i,t} + \frac{1}{c} \psi_{x,y-i,t}$$
+		%$$i,j = \{ -const, ..., const \}$$
+		%\end{equation}
+		%\end{otherlanguage}
+		%\end{block}
+		
+
+		The simplest solution can be found by moving of a double toroidal tile by the optical flow adn replicate the movement of structures in the texture. This solution represents goodly two of three main scenes parameters. Global dynamic (moving of all scene or large objects like whole trees) is represented by the optical flow, and texture itself by the double toroidal tile. The local dynamics (like moving of leaves, blade of grass) cannot be sufficiently represented by this solution.
+
+		
+		%When the double toroidal tile is found the simplest solution is to move the tile by the optical flow and replicate the movement of structures in the window. Unfortunately it can be sufficient only if the optical flow in whole texture is constant or if the variance in the optical flow throughout the scene is small. This can be used like a rough solution, or like indication for finding much better results. This solution represents goodly two of three main scenes parameters. Global dynamic (moving of all scene or large objects like whole trees - one of mix of dynamic textures) is represented by the optical flow, and texture itself by the double toroidal tile. The local dynamics (like moving of leaves, blade of grass) cannot be sufficiently represented by this.
+		
+			\begin{figure}[b]	     
+			      \centering
+			      \includegraphics[width=.40\columnwidth]{\adri Pr2}\hspace*{0.1em}
+			      \label{fig:boundary2}
+			 \caption{Fitting toroidal boundary: Simple border model. Yellow dots represent initialization border. Yellow area represents an area where the sought accurate solution. Crosses represent the exact boundary sweaty only spatial errors, commplementary points (small crosses) must be added to make the border continuous. Parameter \emph{c} are derived by actual optical flow.}\label{fig:boundary}
+			\end{figure}
+		
+		% To avoid greedy approach, the structure  (Eq.\ref{eq:optimal_cuts1}, \ref{eq:optimal_cuts2}, \ref{eq:optimal_cuts3}, \ref{eq:optimal_cuts4}) must be builded. 
+		
+		The local dynamics problem can be solved by iterative changes of borders to satisfy the minimal error of overlapping borders (see Fig.~\ref{fig:boundary}).The variable $c$ is used to determine size of structure with respect to shape of the original rough border. 
+		
+		  Using of areas extremely faster the computation time for the finding of the optimal tile shape (against searching in whole texture which is also possible, but time consuming). Using of areas can help too in some typical problems with extremely varying speed, artifact or problems with highly dynamic texture like details of fire or water. In these areas optimal fitting planes can be found by the algorithm described below. This can be done by whole recreating of tiles, or by building and traversing of the recomputed (to overcome ‘blind’ and unwanted states) structure. In fitting step the overlap error is computed only by actual spatial data (Eq. ~\ref{eq:optimal_cuts2D1} ,~\ref{eq:optimal_cuts2D2})
+		
+	\begin{equation} \label{eq:optimal_cuts2D1}						
+		 \Psi_{r}^{h*} = \psi_{r}^{h*}  + min\{\psi_{r-[c,0]}^{h*}... \psi_{r-[0,0]}^{h*} ... \psi_{r+[c,0]}^{h*} \} 
+	\end{equation} 
+	\begin{equation} \label{eq:optimal_cuts2D2}
+		 \Psi_{r}^{v*} = \psi_{r}^{v*}  + min\{\psi_{r-[0,c]}^{v*}... \psi_{r-[0,0]}^{v*} ... \psi_{r+[0,c]}^{v*} \} 
+	\end{equation} 
+		
+		%(like in building the structure the width/height is changes by actual optic flow - the possibility of large changes must be keep if texture is changind/moving extremly fast)
+			\miniframe{}
+				{
+		          	          {}
+					{
+						\vspace*{-5mm}
+						Spatial patches:\\
+						\vspace*{-2mm}
+						\begin{enumerate}
+						\item  Find the initial double toroidal tile.
+						\item  Move the tile by the optical flow.
+						\item  Compute searching areas from the tile and flow.
+						\item  Find exact time-spatial planes\\
+						 a)  By findind sets of independent cuts (for high dynamic data) or \\
+					 	 b)  By propagating the tile thought the time dimension with keeping the structure of cuts (reverse rule to building the data structure)
+						\end{enumerate}
+					}
+				}
+		\vspace*{2mm}
+	%	1) find the initial cut
+	%	2)  move tile by the optic flow
+	%	3) compute the searching areas giving by tile and flow
+	%	4) find exacs time-spatial plane
+	%	 a) by findind independent cuts (for high dynamis data, the area can be smaller)
+	%	 b) by propagating tile thought time dimension (reverse rule to building structure)
+		
+			The greatest advantage of our approach is the separation of the analysis and the synthesis step. Once patches are found, the output can be synthesize on-the-flow simply by copying data from the input with some offsets. Lattice of patches may or may not be known, so the analysis and synthesis step is completely separated. 
+
+			In many times the false periodicity property can be observed. This problem can be overcome by using of more tiles (allowing to overlap patches is very useful with this too). When multiple tiles are used the optical flow (and the shape through time) must be the same or very similar. This is often a very challenging problem.
+				
+		\begin{figure}[b]
+  \includegraphics[width=0.3\columnwidth]{\adri /vzorek_A} \hfil
+  \includegraphics[width=0.3\columnwidth]{\adri /vzorek_A_AB} \hfil
+  \includegraphics[width=0.3\columnwidth]{\adri /vzorek_B_AB} 
+  \caption{Standalone double toroidal tile (left), multifitting double toroidal tile (middle), and
+   multifitting  double toroidal tile.}
+	\label{fig:tileA}
+		\end{figure}
+		
+		
+		
+		%\begin{figure}[htbAAAAA]
+		%	\begin{center}
+		%		\newlength{\texturewidth}
+		%		\setlength{\texturewidth}{0.2\columnwidth}
+		%		\def\alotdir{alot}
+		%		%\vspace*{-10mm}
+		%		%\hspace*{-130mm}
+		%			 \includegraphics[width=\texturewidth]{\adri /vzorek_A}	\hspace*{10mm}
+		%			%\hspace*{50mm}
+		%  			  \includegraphics[width=\texturewidth]{\adri /vzorek_A_AB}	\hspace*{0.1em}
+		% 			  \includegraphics[width=\texturewidth]{\adri /vzorek_B_AB}	%\hspace*{0.1em}
+		%		\caption{a) one standalone tile; b) two double toriodal tiles with the same borders, but different inside data}
+		%		\label{Tiles}
+		%	\end{center}
+		%\end{figure}
+		
+	%	\begin{figure}[htb]
+	%		\begin{center}
+	%			\newlength{\texturewidth}
+	%			\setlength{\texturewidth}{0.4\columnwidth}
+	%			\def\alotdir{alot}
+	%				 \includegraphics[width=\texturewidth]{\adri /vzorky_AAAA}	\hspace*{10mm}
+	%	  			  \includegraphics[width=\texturewidth]{\adri /vzorky_AABAABBAA}%	\hspace*{0.1em}
+	%			\caption{a) grid with one type of tile b) grid with teo types of tiles, placing of tiles are random of user defined}
+	%			\label{Grids}
+	%		\end{center}
+	%	\end{figure}
+			
+
+			
+	
+			
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		%%%%%%%%%%%%%%%%%%%%%TEMPORAL CUTS %%%%%%%%%%%%%%%%%%%%%%%%%
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%dolu jeste \cite{Chan06layereddynamic} layered dynamic texture !!!!
+%k miyu taky \cite{Chan_modeling}
+
+		\section{Temporal cut}
+	
+%	Since we had double toroidal patches traversing throught whole video, last toroidal property must be satysfied. 
+%	Creating of cut which seamless loop the one patch can be done similar by some graph-cut algorithm\cite{Kwatra03graphcuttextures}  of by frame-to-frame loop\cite{Schodl00videotextures}. In fact, if spatial part of algorithm is skipped, our approach degradates to approach similar like presented by Kwatra\cite{Kwatra03graphcuttextures}. But because we already have double toriodal patch, we must keep its property, so the temporal cuts can not be only time-optimal how can be seen on Figure2 (b,c). Here temporal and \emph{any} spatial dimension are represented by horizontal and vertical direction respectively.  First two rows show \emph{the same} texture with cut, second show texture synthesized in temporal dimension and third synthesis in temporal and spatial dimension. The red dotted line show cut, where spatial continuity is violated. It can be easy seen, that  if the temporal cut are not double toroidal the border violate the spatial homogenity. Our algorithm start by finding the most similar set of frames, which is the most time consuming part of our approach (hence the nearly all-to-all distances are computed) and we adopt the similarity matrix uses first by Schodl. The minimized error can be represented like pixel-to-pixel difference of frames or other metrics.
+%	
+	The creating of the temporal cut which seamlessly loop the tile can be done by the graph-cut algorithm\cite{Kwatra03graphcuttextures} of by a frame-to-frame loop\cite{Schodl00videotextures}. In fact, if the spatial part of our algorithm is skipped, our approach degrades to approach similar like presented by Kwatra\cite{Kwatra03graphcuttextures} or in extreme cases (highly blurred/noised texture) to Schodl\cite{Schodl00videotextures}.
+
+	The computing of the triple toriodal tile from the double toroidal video tile is not trivial. The toroidal property of the sample must be maintained by this temporal cut (as can be seen on Fig. ~\ref{fig:offset_and_cut_C} and ~\ref{fig:offset_and_cut_C}). Here temporal and \emph{any} spatial dimensions are represented by the horizontal and vertical direction respectively. First two rows show \emph{the same} texture with the cut in it. Second row show textures synthesize in the temporal dimension. Third row presents synthesis in temporal and spatial dimensions. The red dotted line shows the cut where the spatial continuity is violated. It can be easy seen, that if the temporal cut is not double toroidal the border violates the spatial homogeneity. 
+
+	Our algorithm starts by finding the most similar sets of $o$ frames, which is the most time consuming part of our approach (hence the nearly all-to-all distances are computed). For finding similar frames, we adopt the similarity matrix uses first by Schodl\cite{Schodl00videotextures}. The minimized error can be represented like a pixel-to-pixel difference of frames or other metrics \cite{doretto05dissertation,Kwatra05textureoptimization}. 
+
+	The cost of whole (permissible) temporal cut is minimized (see ~\ref{eq:temporal_cut_cost}) so as to preserve the spatial properties of the toroid. We define the temporal overlap error as follows: 
+	
+	\begin{equation} \label{eq:temporal_cut_cost}
+		\Psi^{t*}  =  min_{\Psi}\{  \sum_{\forall r_1,r_2}{\psi_{r,m}^{t*}}\}
+	\end{equation}
+	
+	where $t$ is unknown temporal coordinate of the first of most similar frames, $m$ is distance between the most similar frames.
+	
+	\begin{equation} \label{eq:temporal_cut_cost2}
+	\psi_{x,y,t,m}^t =  D^m ( Y_r^g , Y^g_{r+[0,0,m]})\\
+	\end{equation}
+	where $D$ denotes distance operation with metric $m$ between operands of $D$. Maximal change of t between  8-neighborhood of $Y_{r}$ and $ Y_{r_1+i,r_2+j,r_3}$ is $c_t$.
+
+	
+%	\begin{tabular}{ l p{9.8cm} }
+%		$t$ &unknown temporal coordinate of the first of most similar frames \\
+%		$m$ &distance between the most similar frames\\
+%		$ i,j$ & $\in$ (-1,0,1) \\
+%	\end{tabular} 
+	
+%	 Since the temporal cut place must be double toroidal
+
+% \begin{center}
+%	\LARGE $\Psi^{t*}  =  min_{\Psi}\{  \sum_{\forall x,y}{\psi_{x,y,t,m}^{t*}}\}$  
+% \end{center}
+%	%\LARGE $$\Psi^{t*}  =  min(\sum_{y} { \sum_{x} ({\psi_{x,y,t,m}^t*}})) $$}
+%	\begin{tabular}{ l p{9.8cm} }
+%		$\Psi_{t*}^t$ &  cost of temporal cut\\
+%		$\psi_{x,y,t,m}^t$ &  difference between $Y_r^g$ and $Y^g_{r+[0,0,m]}$\\
+%		$r$ & multiindex $ [r_1, r_2, r_3]$ \\%(row, column, frame)
+%		$Y^g_r$ & neighborhood of size $g$ of $Y_r$ with gaussian (or other) weight\\
+%		$Y_r$ & multispectral vector of pixel\\% $x$ $y$ from frame $t$\\
+%		$t$ &unknown temporal coordinate of the first\\ &of most similar frames \\
+% 		$m$ &distance between the most similar frames\\ %unknown  length of output\\%& (rozdíl mezi 2 nejblizsimi framy) \\
+% 		%$c$ &maximal change of t between 4-okolí of I_{x,y,t} and  I_{x+i,y+j,t}\\
+%		$ i,j$ & $\in$ (-1,0,1) \\
+% %  \multicolumn{2}{l}{$Z_{r} = \lbrack Y_{r-s}^T: \forall s\in I_{r} \rbrack^T$, \qquad $\gamma = \lbrack A_s: \forall s\in I_{r} \rbrack $} \\
+%% \multicolumn{2}{l}{max abs($c$)= 1 } \\
+%% \multicolumn{2}{l}{maximal change of t between 4-okolí of $I_{x,y,t}$ and $ I_{x+i,y+j,t}$ is 1 } \\
+%\end{tabular}
+%%\begin{center}
+%maximal change of t between  \\ 8-neighborhood of $I_{x,y,t}$ and $ I_{x+i,y+j,t}$ is $c_t$
+%\end{center}
+
+	%In some textures using of only one temporal cut can lead to very short sequence with very noticeable periodicity. In that case, offset patches or more temporal cuts which can be randomly changed can be used. (neni impl, vypustit)
+	
+		%%%%%%%%%%%%%%%%%%%%% SET - OF - CUTS %%%%%%%%%%%%%%%%%%%%%%%
+
+		\subsection{Set-of-cuts}	
+
+
+		
+		\begin{figure}
+			        \centering
+			 \begin{subfigure}[b]{0.4\columnwidth}
+			                \centering
+			\vspace*{1mm}	
+			 \includegraphics[width=0.18\columnwidth]{\adri /N0}	%\hspace*{0.1em}
+			 \includegraphics[width=0.18\columnwidth]{\adri /N0}	%\hspace*{0.1em}
+			  \includegraphics[width=0.18\columnwidth]{\adri /N3o}	%\hspace*{0.1em}
+			 \includegraphics[width=0.18\columnwidth]{\adri /N6}	%\hspace*{0.1em}
+			 \includegraphics[width=0.18\columnwidth]{\adri /N6}	%\hspace*{0.1em}
+			\vspace*{1mm}
+			\\
+			 \includegraphics[width=0.18\columnwidth]{\adri /N0}	%\hspace*{0.1em}
+			 \includegraphics[width=0.18\columnwidth]{\adri /N1o}	%\hspace*{0.1em}
+			 \includegraphics[width=0.18\columnwidth]{\adri /N3o}	%\hspace*{0.1em}
+			 \includegraphics[width=0.18\columnwidth]{\adri /N4o}	%\hspace*{0.1em}
+			 \includegraphics[width=0.18\columnwidth]{\adri /N6}	%\hspace*{0.1em}
+			\vspace*{1mm}
+			\\
+			  \includegraphics[width=0.18\columnwidth]{\adri /N1}	%\hspace*{0.1em}
+			  \includegraphics[width=0.18\columnwidth]{\adri /N2}	%\hspace*{0.1em}
+			  \includegraphics[width=0.18\columnwidth]{\adri /N3}	%\hspace*{0.4em}	
+			  \includegraphics[width=0.18\columnwidth]{\adri /N4}     %\hspace*{0.1em}
+			  \includegraphics[width=0.18\columnwidth]{\adri /N5}	
+					\caption{Set-of-cuts}
+					\label{fig:Set-of-cuts}
+			\end{subfigure} \hfill
+	        %add desired spacing between images, e. g. ~, \quad, \qquad etc. 
+			          %(or a blank line to force the subfigure onto a new line)
+	%		\hspace*{10mm}
+			  \begin{subfigure}[b]{0.25\columnwidth}
+			                \centering
+			                \includegraphics[width=\textwidth]{\adri /rezyC_cr1}
+			                \caption{Temporal cut}
+			                \label{fig:offset_and_cut_C}
+			   \end{subfigure}      	\hfill	
+		%		\hspace*{10mm}
+			    \begin{subfigure}[b]{0.25\columnwidth}
+			                \centering
+			                \includegraphics[width=\textwidth]{\adri /rezyC_cr2}
+			                \caption{Temporal cut}
+			                \label{fig:offset_and_cut_D}
+			    \end{subfigure}      
+			    \caption{(a)  Every row represent one iteration of fining the transition plane; each column represent different frames : $t-2, t-1, t, t+1, t+2$ from first to fifth respectively; all pictures is one frame of texture where color represents offset and original data; first row - one cut that put together two most similar frames; second row - in each halfplane of next and previous frame another softing cut is found; third row - final result of another iterations present ability to choose to change slope (b) Illustration of cuts for temporal synthesis without spatial control (c) Illustration of cuts for temporal  synthesis with spatial control }\label{fig:tiles33}
+			\end{figure}
+			
+	%Rather than finding a single transition time for the whole image our approach cut the most similar frames to two (or more) parts and iteratively continue in finding next optimal cuts in surrounding frames as can be seen in Figure 2a. This result is very similar to determining the time transition per-pixel basis, but local spatial properties are keep. By this, infinitely long sequence of texture can be found and because patch satisfy the global texture dynamic this simple approach can work with it. 
+	
+	%The problem of this approach can be viewed  on Figure 2(b,c)  - This can be overcomed by enforcing the start and end coordinates (in temporal dimension) to be the same. Unfortunately it is not simple to find maximal sub-optimal cut, so we need to compare $o$ cuts, where all cuts are forced to have the same start and end coordinates. Overhelming of problem visualized on Figure2(a) from other axis is harder to done - on this figure the cuts can be forced to end and start in the same \emph{y} coordinates, but top and bottom parts of texture have different offset and can create optical no-continuations. This is problem, because process is iterative and we do not know how the edges will be cut. This can be resolved by creating a tree of potential cuts and then traversing them to minimize this boundary error. This approach is effective in many textures, and because of every cut is created by single way it can fitt the objects in texture very well.
+	%
+	Rather than finding a single transition time for the whole image our algorithm cut the pair of the most similar frames to two (or more) parts and overlay them. Next cuts are computed iteratively. In each step algorithm is looking up to four cuts (every cut generates two halfplanes and can have previous and next frame) and use one cut in every halfplane. This result is very similar to determining the time transition per-pixel basis, but local spatial properties of the texture are keep. By this, infinitely long sequence of a texture can be found and because patch satisfy the global texture dynamic this simple approach can work with it.
+
+%	\miniframe{}
+%			{
+%	          	          {}
+%				{
+%				\vspace*{-5mm}
+%				Temporal  cut:\\
+%				\vspace*{-2mm}
+%				\begin{enumerate}
+%					\item Find the most similar frames of set of frames (middle column on ~\ref{fig:T_c_b})
+%					\item From the most similar frames compute minimal error cut (first row at ~\ref{fig:T_c_b})
+%					\item Find another cuts in halfplanes from surrounding frames (second iteration on second row, result on third row)
+%					\item Stop until reach maximum number of cuts of cuts are too close to the boundary of the frame
+%				\end{enumerate}
+%				}
+%			}
+		The problem of this approach can be viewed on Fig.~\ref{fig:offset_and_cut_C}. This can be easy overcome by enforcing the start and end coordinates  to be the same, run pathsearch algorithm $o$ times and found the best possible suboptimal path (Fig.~\ref{fig:offset_and_cut_D}). The second toroidal property (top and down border on Fig.~\ref{fig:Set-of-cuts} are minimized by building a tree of all potential cuts and then traversing them to minimize temporal and this boundary error (denoted as weighted difference of $c_2$ coordinates in top and bottom row). This problem is not relevant in the case that the texture is synthesized only in only one spatial dimension.
+		
+%		  Overcome of a problem visualized on ~\ref{fig:set-of-cuts} is harder to done – in this example the cuts can be forced to end and start in the same (i.e., \emph{y}) coordinates, but top and bottom parts of the texture have different offset and can create optical discontinuity. This is problem, because process is iterative and we do not know how the edges will be cut. It can be resolved by creating a tree of all potential cuts and then traversing them to minimize this boundary error. %This approach is effective in many textures, and because of every cut is created by single way in one frame it can fit the objects in the texture very well.
+
+		
+%		The problem of this approach can be viewed on Fig.~\ref{fig:T_c_b}. This can be easy overcomed by enforcing the start and end coordinates (in temporal dimension) to be the same (Fig.~\ref{fig:T_c_c}). Unfortunately it is not simple to find maximal sub-optimal cut, so we need to compare $o$ cuts, where all cuts are forced to have the same start and end coordinates. Overcome of a problem visualized on ~\ref{fig:set-of-cuts} is harder to done – in this example the cuts can be forced to end and start in the same (i.e., \emph{y}) coordinates, but top and bottom parts of the texture have different offset and can create optical discontinuity. This is problem, because process is iterative and we do not know how the edges will be cut. It can be resolved by creating a tree of all potential cuts and then traversing them to minimize this boundary error. %This approach is effective in many textures, and because of every cut is created by single way in one frame it can fit the objects in the texture very well.
+	
+	%\begin{enumerate}
+	%\item Find the most similar frames (set of frames)
+	%\item From the most similar frame compute minimal error cut (horizontally or vertically)
+	%\item Find anothet cuts in surrounding frames
+	%\item stop until reach maximum number of cuts of cuts are too close to the boudary of the frame
+	%\end{enumerate}
+	
+	%%%%%%%%%%%%%%%%%%%%% fitting plane %%%%%%%%%%%%%%%%%%%%%%%
+
+	
+	\subsection{Fitting plane}
+	
+	In some cases the previous approach for temporal cut is not satisfying. The every single cut is computed in one frame and derived by only \emph{spatial} data but in fact it drives the \emph{temporal} offset. If the temporal dynamic of the texture are significantly greater than the local spatial dynamic the temporal cut plane can be computed differently. Like in set-of-cuts the problem is to create a cut with no boundary spatial errors. This can be done by using a similar procedure like in propagating the double toroidal tile. The structure for computing offset error is created, but the time axis is changed to one spatial axis and the plane which minimize overal error are searched by traversing a line by the structure (with keeping of consistency and double toroidal property). %This process dependent on the direction (top-down or left-right) but in most cases, the results are nearly the same.
+	
+%	This approach are better to texture with highly local spatial dynamics like leaves or grass in string wind, boiling water or fire. As can be seen in Figure 3 the planes generated by this approach are more general, but satisfy the toroidal  boundary rules and is double toroidal like while spatial patch (this can be easy done to setting error cost od ending not wanted coordinates to infinity before computing the structure).
+
+	   This is better to the texture with lesser local spatial dynamics like leaves or grass in string wind, flowers or leaves. As can be seen in Fig.~\ref{fig:T_plane} the planes generated by this approach are more general, but satisfy the toroidal boundary rules and are double toroidal like a spatial patch (this can be easy done to setting error cost of ending not wanted coordinates to infinity before computing the structure). %The finding of this plane cut is very fast, the slower part is to build a three dimensional structure (by the same equations like in finding optimal cuts), the traversing and the finding of the plane is very fast. 	   
+	
+			\begin{figure}
+			        \centering
+			        \begin{subfigure}[b]{1\columnwidth}
+			                \centering
+			\vspace*{1mm}	
+			 \includegraphics[width=0.1\columnwidth]{\adri /T0}	%\hspace*{0.1em}
+			 \includegraphics[width=0.1\columnwidth]{\adri /T1}	%\hspace*{0.1em}
+			  \includegraphics[width=0.1\columnwidth]{\adri /T2}	%\hspace*{0.1em}
+			 \includegraphics[width=0.1\columnwidth]{\adri /T3}	%\hspace*{0.1em}
+			\vspace*{1mm}
+			\\
+			 \includegraphics[width=0.1\columnwidth]{\adri /T4}	%\hspace*{0.1em}
+			 \includegraphics[width=0.1\columnwidth]{\adri /T5}	%\hspace*{0.1em}
+			 \includegraphics[width=0.1\columnwidth]{\adri /T6}	%\hspace*{0.1em}
+			 \includegraphics[width=0.1\columnwidth]{\adri /T7}	%\hspace*{0.1em}
+			\vspace*{1mm}
+					\caption{Each picture represent one frame in texture left-right and top-down respectively; all pictures is one frame of texture where colors represents offset and original data; you can see the general shape of the plane and its double toroidal property}
+					\label{set-of-cuts}
+		        \end{subfigure}%
+			        \caption{ }\label{fig:T_plane}
+			\end{figure}
+	
+	
+	%\begin{enumerate}
+	%\item Find the most similar frames (set of frames).
+	%\item Compute local difference on overlay.
+	%\item Compute 3D data structure like in finding first-frame-cut.
+	%\item On some (f.e. upper plane) edge compute classical 2D data structure for dynamic programming.
+	%\item Find the (f.e) upper cut.
+	%\item Propagate cut to entire video (f.e. by rows) like spatial cuts
+	%\end{enumerate}
+	
+%		\begin{figure}[htbA]
+%			\begin{center}
+%			%	\newlength{\texturewidth}
+%				\setlength{\texturewidth}{0.1\columnwidth}
+%				\def\alotdir{alot}
+%		\vspace*{1mm}	
+%		 \includegraphics[width=\texturewidth]{\adri /N0}	\hspace*{0.1em}
+%		 \includegraphics[width=\texturewidth]{\adri /N0}	\hspace*{0.1em}
+%		  \includegraphics[width=\texturewidth]{\adri /N3o}	\hspace*{0.1em}
+%		 \includegraphics[width=\texturewidth]{\adri /N6}	\hspace*{0.1em}
+%		 \includegraphics[width=\texturewidth]{\adri /N6}	\hspace*{0.1em}
+%		\vspace*{1mm}
+%		\\
+%		 \includegraphics[width=\texturewidth]{\adri /N0}	\hspace*{0.1em}
+%		 \includegraphics[width=\texturewidth]{\adri /N1o}	\hspace*{0.1em}
+%		 \includegraphics[width=\texturewidth]{\adri /N3o}	\hspace*{0.1em}
+%		 \includegraphics[width=\texturewidth]{\adri /N4o}	\hspace*{0.1em}
+%		 \includegraphics[width=\texturewidth]{\adri /N6}	\hspace*{0.1em}
+%		\vspace*{1mm}
+%		\\
+%		  \includegraphics[width=\texturewidth]{\adri /N1}	\hspace*{0.1em}
+%		  \includegraphics[width=\texturewidth]{\adri /N2}	\hspace*{0.1em}
+%		  \includegraphics[width=\texturewidth]{\adri /N3}	\hspace*{0.1em}	
+%		  \includegraphics[width=\texturewidth]{\adri /N4}    \hspace*{0.1em}
+%		  \includegraphics[width=\texturewidth]{\adri /N5}	\hspace*{0.1em}
+%				\caption{Set-of-cuts; rvery row represent one iteration of softing the transition plane; each row represent different frames : $t-2, t-1, t, t+1, t+2$ from first to fith respectivelz;   all pictures is one frame of texture where color represents offset ond original data; first row - one cut that put tohethe two most similar frames; second row - in each halfplane of next and previous frame another softing cut is found; third row - finala result of another iterations present ability to choose to change slope }
+%				\label{sets-of-cuts}
+%			\end{center}		
+%		\end{figure}
+		
+		
+		\section{Results}
+
+In the most of cases (except comparison with other textures) we used for testing of our approaches database dynamic textures DynTex\cite{dyntex}, with textures with spatial resolution of 720 x 576 pixels and varying length (from seconds to minutes).This database contains a large number of many types, including grass, water, animals, smoke and other natural or artificial scene. In synthesis step, the output is not depend on type of input texture, but our approach works better on textures containing sharp edges (trees, leaves). Time of analysis part varies from minutes to hour given by length an input data and size of patches (if patches are large, the time-cut part of algorithm takes more time), while the synthesis takes significantly shorter time.
+
+On Figs.~\ref{fig:clouds2},~\ref{fig:grass},~\ref{fig:spark} and~\ref{fig:water2} below you can see the comparison of our results previously published by Kwatra, Schodel and Bar-Joseph. All textures are 4D, but have extremely small resolution and artifacts created by using of lossy format (which work like automatic blur of seams) instead of uncompressed format which we used for all other results. 
+
+On Fig. ~\ref{fig:clouds2} is the \textsc{clouds} texture (resolution is 128x128x59 by horizontal, vertical and time axis respectively). This is example of the texture where our algorithm does not work well, the clouds are unique and texture is extremely small to find perfect toroidal patch and the edge is visible in some cases (unless some blending method is used). On Fig.~\ref{fig:grass} the example of \textsc{grass} texture (resolution is 224x114x59 by horizontal, vertical and time axis respectively) is presented. The texture of \textsc{sparkle} (resolution is 240x160x150 by horizontal, vertical and time axis respectively) on Fig. ~\ref{fig:spark} is easy to create spatial cuts, but difficult to create the temporal one (due to uniques of texture frames). You can see mistakes on both our (detailed) and Kwatra result. On Fig. ~\ref{fig:water2} is an example of Kwatra and our result of the synthesized \textsc{water} texture. The temporal cut is presented in at least one of our presented examples.
+
+%The texture of the water flowing from the stone.
+On Fig.~\ref{fig:kamvod} one can see interesting result of our approach. The first row contains synthesized results created with two patches. On this texture is stream of water 'springing' from stone. This is due the algorithm used no syntactic information. In second row you can see result with using more patches where you can see two 'rivers' (In such cases it may be a type of sample set manually.).
+
+
+\paragraph{Temporal cut}
+%Only by computing per-pixel time-offset to create a repetition of whole texture and is better in keeping spatial structure of texture than Kwatra \cite{Kwatra03graphcuttextures}, works well on larger and of course multispectral textures.
+	Instead of Bar-Joseph\cite{Bar-joseph01texturemixing} which can create only time limited sequences our approach can generate infinitely long textures. By using of the optical flow, we can create textures which are 'constantly moving' like panoramic slide with the camera. In some cases this can cause unexpected results - for example the \textsc{spark} texture on Fig.~\ref{fig:spark} are constantly drifting due to optical flow generated by electric flashes (this global move can be of course handled and disabled by the type of texture).
+	
+	%Instead of Bar-Joseph\cite{Bar-joseph01texturemixing} which can create only time limited sequences or Schodl \cite{Schodl00videotextures} which need to use blur techniques, our approach can generate infinitely long textures only by computing per-pixel time-offset to create repetition of whole texture and do not need to use the blur or morphing technique and has better in keeping spatial structure od texture than Kwatra \cite{Kwatra03graphcuttextures}, works well on larger and of course multispectral textures. By using of optical flow, we can create textures which are 'constantly moving' like panoramic slide with the camera. In some cases this can cause unexpected results - for example the \textsc{spark} texture on Fig.~\ref{fig:spark} are constantly drifting due to optical flow generated by electric flashes (this global move can be of course handled and disabled by the type of texture).
+	
+	
+	%Because our approach is not creating new data but only copying existing ones, there are some limitations. It can be seen on <fig> where are displayed some frames of synthesized video. In this case input video is only 63 frames long with resolution of 720 x 576 pixels. On synthesized video can be seen, that some cars disappears during video. This is due to the fact that in the source video is not present appropriate data - in this case cars. This problem is not only in short input video, but is typical for videos of extremely uniqueness data (like waterbal of waves on beach) and can not be easy handle by simply copying of data.
+	%
+	%
+\paragraph{Local dynamic}
+	If only local dynamics present in the texture our approach works very well and is able to synthesize a wide range of types of natural DT (see Fig. ~\ref{fig:examples_XYT}).  It is good to say, that DT like a smoke from a fire or a river, which is intuitively static has strong global motion and belong to the following paragraph.
+	
+	%Once the analytical part is completed, the synthesis can be carried out very quickly. Advantage of our approach is that from any given set of patches large number (given by size of patches and given their number) of different output can be created.
+
+\paragraph{Global dynamics}
+	When some global motion (i.e. moving  camera view)  is present in the texture the synthesis with the temporal offset is not satisfactory and the entire  patch must be spatially moved. This can be detected  by the optical flow of the texture. %This solution overcomes scenes with moving camera of flowing river or rising smoke.
+	
+\paragraph{Mix of textures}
+		If the input texture is a mixture of dynamic textures our approach can easy handle this. In these cases, our algorithm selects only one type of texture and create output completed only samples from one type of texture. This is caused by minimizing the error at the edge of the patch, which is usually fulfilled only samples of the same type of DT. As can be seen on the \textsc{shore} texture.
+%where the patches of only water are created only from them. 
+%
+%This is caused by minimizing the error at the edge of the patch, which is usually fulfilled only samples of the same type of DT.
+
+	One way how can be this problem solved is to create more types of patches with more shapes or computing special cases of boundary as can be seen on Fig. ~\ref{fig:More_types_of_tiles}  where \emph{A} and \emph{B} represent water, \emph{D} grass and \emph{C} shore.
+
+		\begin{figure}
+		        \centering
+%		        \begin{subfigure}[b]{0.6\columnwidth}
+		                \centering
+		                \includegraphics[width=\columnwidth]{\adri /vzorky_breh}
+		                \caption{four types of tile putting together}
+		                \label{fig:tileA}
+%		        \end{subfigure}%
+		        \caption{Grid of tiles}\label{fig:More_types_of_tiles}
+		\end{figure}
+		
+			\begin{figure}
+			        \centering
+%			        \begin{subfigure}[b]{0.4\columnwidth}
+			                \centering
+			                \includegraphics[width=\columnwidth]{\adri /t_e2}
+			                \caption{Grid from one type of a tile}
+			                \label{fig:df}
+%			        \end{subfigure}%
+			        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc. 
+			          %(or a blank line to force the subfigure onto a new line)
+%			        \begin{subfigure}[b]{0.4\columnwidth}
+			                \centering
+			                \includegraphics[width=\columnwidth]{\adri /t_e1}\hspace*{0.1em}
+			                \caption{Grid from two type of tiles}
+			                \label{fig:double toroidal tile}
+%			        \end{subfigure}
+			        \caption{The grid of tiles}\label{fig:examples_XYT}
+			\end{figure}
+
+%		\begin{figure}
+%		        \centering
+%		        \begin{subfigure}[b]{0.4\columnwidth}
+%		                \centering
+%		                \includegraphics[width=\columnwidth]{\adri /vzorky_breh}
+%		                \caption{four types of tile putting together}
+%		                \label{fig:tileA}
+%		        \end{subfigure}%
+%		        \caption{Grid of tiles}\label{fig:More types of tiles}
+%		\end{figure}
+%		
+%		
+%		
+%		typical problem in the synthesis of texture is
+%		
+%		
+\paragraph{Distortions}
+	Typical problems in the synthesis of the dynamic texture is the perspective distortions or rotating of the view. The synthesis of these types of scenes is difficult. Typical manifestation of this problem is not perfect vertical and eye-evident seam. The similar effect is present if smooth color or illumination transition (typically the sky) is in texture as can be seen texture \textsc{smoke}. Of course there are many types of textures, which has different horizontally consistency and the horizontally cut in it has no real sense (blasting flames, flag, panoramic view) or it will need more patches to keep it (top part of flag, patches of fluttering flag and its below part).
+	
+\paragraph{Highly dynamic texture}
+	Some DT changed its structure extremely from frame to frame. Typical examples are flames (see \textsc{fireA} and \textsc{fireB} on Fig. ~\ref{fig:fire}), where the single flash of fire disappear and raised during small number of frames or by faster than capturing frequency. In many cases this can be overcome by manually setting of large areas for finding spatial and temporal cut by set-of-cuts as can be seen on picture below. In some cases our algorithm in automatic setting fails if there are some continually moving parts (flames going up) and still parts (bottom of flame) in the texture. It can be seen that synthesized picture looks like very good result, but degrades how flames changed. It is interesting, that after some optically wrong frames, algorithm found new local optimum, change the cut plane drastically and again starts from better results (and ally repeats). Fortunately the "wrong frames" are often only small part of texture and can be found and pick out without disturbing consistency of the whole sequences.
+
+%can see that the synthesized texture
+%
+%Out approach can handle the mix of dynamic textures, but because all patches must fit, it has tendency to pick \emph{one} of textures (unless it is forced to find greater number or patches which can not to overlap) so output is typically not mix of dynamic textures, but one of them with minimal error overlap cost. 
+
+		
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		
+		\section {Summary}
+		
+		We have demonstrated a new approach for 3D image and 4D dynamic texture synthesis based on toroidal tiles. From synthesized examples can be seen that our approach is working for many types of DT. We have demonstrated some problems and in major part we show how our approach can handle it. Our approach is simple, can create infinitely long textures in all dimension and what is the most important it has completely separated analysis and synthesis part so synthesis can be done very quickly and effectively. In future we can improve our algorithm by computing perspective translation to overcome this problem and by more types of texture patches with different shape and better options for editing.
+
+
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		
+	%	\section{Future works}
+		
+
+			\begin{figure}
+			\centering
+		\begin{subfigure}[b]{1\columnwidth}
+				\centering
+				\vspace*{1mm}	
+				\includegraphics[width=0.3\columnwidth]{\adri /vvv0070}	%\hspace*{0.1em}
+				\includegraphics[width=0.3\columnwidth]{\adri /DR(_2)}	%\hspace*{0.1em}
+				\includegraphics[width=0.3\columnwidth]{\adri /DR(3)}		%\hspace*{0.1em}
+				
+				\vspace*{1mm}			
+			 	\includegraphics[width=0.3\columnwidth]{\adri /zk_orig0012}	%\hspace*{0.1em}
+			 	\includegraphics[width=0.3\columnwidth]{\adri /DR(16)}	%\hspace*{0.1em}
+			 	\includegraphics[width=0.3\columnwidth]{\adri /DR(17)}	%\hspace*{0.1em}
+			 	
+				\vspace*{1mm}		
+			  	\includegraphics[width=0.3\columnwidth]{\adri /zk2_orig0032}	%\hspace*{0.1em}
+			  	\includegraphics[width=0.3\columnwidth]{\adri /kytky}	%\hspace*{0.1em}
+			  	\includegraphics[width=0.3\columnwidth]{\adri /kytky3}	%\hspace*{0.4em}	
+			  	
+				\vspace*{1mm}			
+			 	\includegraphics[width=0.3\columnwidth]{\adri /tr_orig0033}	%\hspace*{0.1em}
+			  	\includegraphics[width=0.3\columnwidth]{\adri /trav_x_}	%\hspace*{0.1em}
+			  	\includegraphics[width=0.3\columnwidth]{\adri /tr_xy0030}	%\hspace*{0.4em}	
+				\caption{}
+				\label{set-of-cuts}
+			\end{subfigure}%
+			\caption{First column: the original texture; second column: enlarged in temporal and one spatial (horizontal) dimension; third column: Enlarged in both spatial and temporal dimensions}
+			\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			\begin{figure}
+			\centering
+			%\hspace*{-20mm}
+			\begin{subfigure}[b]{0.72\columnwidth}
+			                	\centering
+					\vspace*{1mm}					
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire7X0000}	%\hspace*{0.1em}
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire7X0004}	%\hspace*{0.1em}
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire7X0006}	%\hspace*{0.1em}
+					\includegraphics[width=0.24\columnwidth]{\adri /_fire7X0009}	%\hspace*{0.1em}
+					\vspace*{1mm}
+					\\
+					\includegraphics[width=0.24\columnwidth]{\adri /_fire7X0013}	%\hspace*{0.1em}
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire7X0054}	%\hspace*{0.1em}
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire7X0082}	%\hspace*{0.1em}
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire7X0129}	%\hspace*{0.1em}
+					\vspace*{1mm}				
+					\caption{Synthesized texture; The cyclic degrading of cuts can be seen. The set-of-cuts method is used.}
+					\label{set-of-cuts}
+			     \end{subfigure}		
+			     \begin{subfigure}[t]{0.22\columnwidth}
+			                \centering
+			                \includegraphics[width=0.98\columnwidth]{\adri /_fire6orig0153}   
+			                \caption{original }
+			                \label{fig:offset_and_cut_A}
+			        \end{subfigure} \\     
+				\vspace*{1mm}
+			        \begin{subfigure}[b]{0.72\columnwidth}
+			                	\centering
+					\vspace*{1mm}					
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire10X_cykly0000}	%\hspace*{0.1em}
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire10X_cykly0007}	%\hspace*{0.1em}
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire10X_cykly0019}	%\hspace*{0.1em}
+					\includegraphics[width=0.24\columnwidth]{\adri /_fire10X_cykly0036}	%\hspace*{0.1em}
+					\vspace*{1mm}
+					\\
+					\includegraphics[width=0.24\columnwidth]{\adri /_fire10X_cykly0053}	%\hspace*{0.1em}
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire10X_cykly0082}	%\hspace*{0.1em}
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire10X_cykly0096}	%\hspace*{0.1em}
+				 	\includegraphics[width=0.24\columnwidth]{\adri /_fire10X_cykly0118}	%\hspace*{0.1em}
+					\vspace*{1mm}				
+					\caption{Synthesized texture; The cyclic degrading of cuts can be seen. The set-of-cuts method is used. }
+					\label{set-of-cuts}
+			        \end{subfigure}%
+			        \begin{subfigure}[t]{0.22\columnwidth}
+			                \centering
+			                \includegraphics[width=0.98\columnwidth]{\adri /_fire10X_orig0032}   \hspace*{0.1em}
+			                \caption{original }
+			                \label{fig:offset_and_cut_A}
+			        \end{subfigure}      
+			~
+			        \caption{Example of \textsc{fire} texture}\label{fig:fire}
+			\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			\begin{figure}
+			        	\centering
+				\hspace*{-68mm}
+			        	\begin{subfigure}[b]{1.8\columnwidth}
+				           \centering
+					 \includegraphics[width=0.3\columnwidth]{\adri /bubl0001}	%\hspace*{0.1em}
+					 \includegraphics[width=0.3\columnwidth]{\adri /bubl0005}	%\hspace*{0.1em}
+					 \includegraphics[width=0.3\columnwidth]{\adri /bubl0018}	%\hspace*{0.1em}
+					\includegraphics[width=0.3\columnwidth]{\adri /bubl0028}	%\hspace*{0.1em}
+					\\
+					\vspace*{1mm}		
+					 \includegraphics[width=0.3\columnwidth]{\adri /vlny_roller_blend0014}	%\hspace*{0.1em}
+					 \includegraphics[width=0.3\columnwidth]{\adri /vlny_roller_blend0039}	%\hspace*{0.1em}
+					 \includegraphics[width=0.3\columnwidth]{\adri /vlny_roller_blend0082}	%\hspace*{0.1em}
+					 \includegraphics[width=0.3\columnwidth]{\adri /vlny_roller_blend0181}	%\hspace*{0.1em}
+					\caption{synthesized texture; Set-of-cuts used, both textures enlarged in all dimension. }
+					\label{set-of-cuts}
+			        \end{subfigure}%
+		        \begin{subfigure}[b]{0.3\columnwidth}
+			        		\centering
+					\includegraphics[width=0.3\columnwidth]{\adri /bubl_o0011}   
+					\\
+					 \vspace*{1mm}
+					\includegraphics[width=0.3\columnwidth]{\adri /vlna0001} %  \hspace*{0.1em}
+			                	\caption{Original }
+			                	\label{fig:offset_and_cut_A}
+			        \end{subfigure}      
+			~
+			        \caption{Examples of \textsc{waterA} textures}\label{fig:water}
+			\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			\begin{figure}
+			        \centering
+\hspace*{-20mm}
+%			        \begin{subfigure}[b]{1.2\columnwidth}
+			                \centering
+			\vspace*{1mm}					
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_cloud2_barJ0026}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_cloud2_barJ0048}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/cloud2_barJ0028}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/cloud2_barJ0057}	%\hspace*{0.1em}
+\\
+			\vspace*{1mm}
+			
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_cloud2_kwatra0039}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_cloud2_kwatra0039}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/cloud2_kwatra0004}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/cloud2_kwatra0061}	%\hspace*{0.1em}
+\\
+			\vspace*{1mm} %tato mezera posunuje i vodorovne - PROC?????
+				 \includegraphics[width=0.42\columnwidth]{\adri /kw/_clouds_roll_w1}	%\hspace*{0.1em}
+				 \includegraphics[width=0.42\columnwidth]{\adri /kw/_clouds_roll_w2}	%\hspace*{0.1em}
+
+					\caption{Synthesized textures - first row Bar-Joseph (time enlarged), second row Kwatra (spatiotemporal cuts, time enlarged) and third row our result (enlarged in both spatial and temporal dimensions)}
+					\label{set-of-cuts}
+%			        \end{subfigure}%
+	%       ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc. 
+			          %(or a blank line to force the subfigure onto a new line)
+	%		\hspace*{10mm}
+%\vspace*{-10mm}
+%\\
+%			        \begin{subfigure}[b]{0.25\columnwidth} %kdyz pridam KOMENTAR vyse, tak jsou obrazky vedel sebe
+			                \centering
+			                \includegraphics[width=\columnwidth]{\adri /kw/_cloud2_orig0045}   \hspace*{0.1em}
+			                \caption{Original}
+			                \label{fig:cloudss}
+%			        \end{subfigure}      
+			~
+		%		\hspace*{10mm}
+		   
+			        \caption{Example of \textsc{smoke} texture, comparison with other method}\label{fig:clouds2}
+			\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			\begin{figure}
+			        \centering
+\hspace*{-15mm}
+%			        \begin{subfigure}[b]{1.2\columnwidth}
+			                \centering
+			\vspace*{1mm}					
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_grass_kwatra0002}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_grass_kwatra0055}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/grass_kwatra0032}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/grass_kwatra0057}	%\hspace*{0.1em}
+			\vspace*{1mm}
+			\\
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_grass_schodel0032}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_grass_schodel0043}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/grass_schodel0016}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/grass_schodel0047}	%\hspace*{0.1em}
+			\vspace*{1mm} %tato mezera posunuje i vodorovne - PROC?????
+			\\
+				 \includegraphics[width=0.43\columnwidth]{\adri /kw/_trava_roll}	%\hspace*{0.1em}
+				 \includegraphics[width=0.43\columnwidth]{\adri /kw/_trava_roller}	%\hspace*{0.1em}
+
+					\caption{Synthesized results - first row Kwatra (spatiotemporal cuts, enlarged in temporal dimension), second row Schodel (temporal cuts and blend) and third row our result (enlarged in temporal and horizontal dimensions)}
+					\label{set-of-cuts}
+%			        \end{subfigure}%
+	%       ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc. 
+			          %(or a blank line to force the subfigure onto a new line)
+	%		\hspace*{10mm}
+%\vspace*{-10mm}
+%\\
+%			        \begin{subfigure}[b]{0.25\columnwidth} %kdyz pridam KOMENTAR vyse, tak jsou obrazky vedel sebe
+			                \centering
+			                \includegraphics[width=\columnwidth]{\adri /kw/_grass_original0068}   \hspace*{0.1em}
+			                \caption{Original}
+			                \label{fig:offset_and_cut_A}
+%			        \end{subfigure}      
+			~
+		%		\hspace*{10mm}
+		   
+			        \caption{Example of \textsc{grass} texture, comparison with other method}\label{fig:grass}
+			\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			\begin{figure}
+			        \centering
+\hspace*{-20mm}
+			        \begin{subfigure}[b]{1.2\columnwidth}
+			                \centering
+			\vspace*{1mm}					
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_sparkle_kwatra0331}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_sparkle_kwatra0406}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/sparkle_kwatra0006}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/sparkle_kwatra0404}	%\hspace*{0.1em}
+			\vspace*{1mm} %tato mezera posunuje i vodorovne - PROC?????
+			\\
+				 \includegraphics[width=0.43\columnwidth]{\adri /kw/sparkle_roller10000}	%\hspace*{0.1em}
+				 \includegraphics[width=0.43\columnwidth]{\adri /kw/_sparkle_roller20012}	%\hspace*{0.1em}
+
+					\caption{Synthesized textures - first row Kwatra (spatiotemporal cuts, enlarged in temporal dimension), second row Schodel (temporal cuts and blend) and third row our result (enlarged in temporal and horizontal dimensions)}
+					\label{set-of-cuts}
+			        \end{subfigure}%
+	%       ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc. 
+			          %(or a blank line to force the subfigure onto a new line)
+	%		\hspace*{10mm}
+%\vspace*{-10mm}
+%\\
+			        \begin{subfigure}[b]{0.25\columnwidth} %kdyz pridam KOMENTAR vyse, tak jsou obrazky vedel sebe
+			                \centering
+
+			                \includegraphics[width=\columnwidth]{\adri /kw/_sparkle_orig0000}   \hspace*{0.1em}
+			                \caption{Original}
+			                \label{fig:offset_and_cut_A}
+			        \end{subfigure}      
+			%~
+		%		\vspace*{50mm}
+		   
+			        \caption{Example of \textsc{spark} texture, comparison with other method}\label{fig:spark}
+			\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+			\begin{figure}
+			        \centering
+\hspace*{-20mm}
+			        \begin{subfigure}[b]{1.2\columnwidth}
+			                \centering
+			\vspace*{1mm}					
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/voda_kwatra0015}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/voda_kwatra0042}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_voda_kwatra0066}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/_voda_kwatra0028}	%\hspace*{0.1em}
+\\
+			\vspace*{1mm} %tato mezera posunuje i vodorovne - PROC?????
+				 \includegraphics[width=0.42\columnwidth]{\adri /kw/_voda_roll1}	%\hspace*{0.1em}
+				 \includegraphics[width=0.42\columnwidth]{\adri /kw/_voda_roll2}	%\hspace*{0.1em}
+					\caption{Synthesized textures - first row Kwatra (spatiotemporal cuts, enlarged in temporal dimension), second row Schodel (temporal cuts and blend) and third row our result (enlarged in temporal and horizontal dimensions)}
+					\label{set-of-cuts}
+			        \end{subfigure}%
+	%       ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc. 
+			          %(or a blank line to force the subfigure onto a new line)
+	%		\hspace*{10mm}
+%\vspace*{-10mm}
+%\\
+		        \begin{subfigure}[b]{0.25\columnwidth} %kdyz pridam KOMENTAR vyse, tak jsou obrazky vedel sebe
+			                \centering
+			                \includegraphics[width=\columnwidth]{\adri /kw/_voda_orig0146}   \hspace*{0.1em}
+			                \caption{Original}
+			                \label{fig:offset_and_cut_A}
+			        \end{subfigure}      
+			%~
+		%		\vspace*{50mm}  
+			\caption{Example of \textsc{waterB} texture, comparison with other method}\label{fig:water2}
+			\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+					
+			\begin{figure}
+
+			        \centering
+\hspace*{-20mm}	
+			        \begin{subfigure}[b]{1.2\columnwidth}
+			                \centering
+			\vspace*{1mm}					
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/porok_roller_ko0000}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/porok_roller_ko0005}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/porok_roller_ko0010}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/porok_roller_ko0033}	%\hspace*{0.1em}
+			%\vspace*{1mm} %tato mezera posunuje i vodorovne - PROC?????
+			\\
+			\vspace*{1mm} %tato mezera posunuje i vodorovne - PROC?????
+
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/porok_roller_ok0002}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/porok_roller_ok0008}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/porok_roller_ok0016}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /kw/porok_roller_ok0032}	%\hspace*{0.1em}
+
+					\caption{Synthesized textures - first row 2 patches, second row 3 patches;}
+					\label{set-of-cuts}
+			        \end{subfigure}%
+	%       ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc. 
+			          %(or a blank line to force the subfigure onto a new line)
+	%		\hspace*{10mm}
+%\hspace*{-10mm}
+%\\
+			        \begin{subfigure}[b]{0.25\columnwidth} %kdyz pridam KOMENTAR vyse, tak jsou obrazky vedel sebe
+			                \centering
+
+			                \includegraphics[width=\columnwidth]{\adri /kw/kamvoda_orig0294}   \hspace*{0.1em}
+			                \caption{original}
+			                \label{fig:offset_and_cut_A}
+			        \end{subfigure}      
+			%~
+		%		\vspace*{50mm}
+		   
+			        \caption{Different number of patches example}\label{fig:kamvod}
+			\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+		%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+					
+			\begin{figure}
+			        \centering
+\hspace*{-10mm}	
+			        \begin{subfigure}[b]{1\columnwidth}
+			                \centering
+			\vspace*{1mm}					
+				 \includegraphics[width=0.25\columnwidth]{\adri /Breh_X0000}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /Breh_X0023}	%\hspace*{0.1em}
+\\
+			\vspace*{1mm} %tato mezera posunuje i vodorovne - PROC?????
+
+				 \includegraphics[width=0.25\columnwidth]{\adri /Breh_XY0014}	%\hspace*{0.1em}
+				 \includegraphics[width=0.25\columnwidth]{\adri /Breh_XY0018}	%\hspace*{0.1em}
+					\caption{Synthesized textures - first row mix of textures, temporal and horizontal cut, second row temporal, horizontal and vertical cuts (algorithm took only one patch)}
+					\label{set-of-cuts}
+			        \end{subfigure}%
+	%       ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc. 
+			          %(or a blank line to force the subfigure onto a new line)
+	%		\hspace*{10mm}
+%\vspace*{-10mm}
+%\\
+			        \begin{subfigure}[b]{0.25\columnwidth} %kdyz pridam KOMENTAR vyse, tak jsou obrazky vedel sebe
+			                \centering
+			                \includegraphics[width=\columnwidth]{\adri /Breh0020}   \hspace*{0.1em}
+			                \caption{Original}
+			                \label{fig:offset_and_cut_A}
+			        \end{subfigure}      
+			%~
+		%		\vspace*{50mm}
+		   
+			        \caption{Example of mix of textures - \textsc{shore}}\label{fig:shore}
+			\end{figure}
+
+
+
+
+\bibliographystyle{\adsty acmsiggraph}
+\nocite{*}
+\bibliography{\adrb haindl,\adrb texture}
+\end{document}
